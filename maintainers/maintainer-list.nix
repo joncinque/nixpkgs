@@ -16339,6 +16339,13 @@
     githubId = 93316844;
     name = "Manaiki Laut";
   };
+  Managarmrr = {
+    email = "patrick@managarmr.de";
+    github = "Managarmrr";
+    githubId = 63654312;
+    name = "Patrick Reich";
+    keys = [ { fingerprint = "CE12 ED73 C6D5 DE05 1651  6DCC 3977 61D5 D102 CB9D"; } ];
+  };
   mandos = {
     email = "marek.maksimczyk@mandos.net.pl";
     github = "mandos";
