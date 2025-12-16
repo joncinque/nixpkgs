@@ -1,103 +1,201 @@
 {
-  lib,
-  stdenv,
-  buildPackages,
   fetchFromGitHub,
-  rustPlatform,
-  rustfmt,
+  lib,
+  makeRustPlatform,
+  nix-update-script,
+  pkgs,
+  stdenv,
+
   installShellFiles,
-  pkg-config,
-  apple-sdk_15,
-  udev,
+  makeWrapper,
   openssl,
-  libz,
+  pkg-config,
   protobuf,
-  cmake,
-  gnumake,
-  clang,
-  llvm,
-  llvmPackages,
-  rocksdb,
+  solana-libpoh-simd,
+  udev,
+
+  # Build flags
+  buildDCOUBins ? true,
+  buildDeprecatedBins ? true,
+  buildDevBins ? true,
+  buildEndUserBins ? true,
+  buildPlatformTools ? false, # No work has been done to support this
+  buildValidatorBins ? true,
 }:
 
-rustPlatform.buildRustPackage (finalAttrs: {
-  pname = "solana-agave";
-  version = "2.3.12";
+let
+  mkBuildscriptFlags =
+    {
+      buildDCOUBins ? false,
+      buildDeprecatedBins ? false,
+      buildDevBins ? false,
+      buildEndUserBins ? false,
+      buildPlatformTools ? false,
+      buildValidatorBins ? false,
+    }:
+    with lib;
+    optional (!buildDCOUBins) "--no-build-dcou-bins"
+    ++ optional (!buildDeprecatedBins) "--no-build-deprecated-bins"
+    ++ optional (!buildDevBins) "--no-build-dev-bins"
+    ++ optional (!buildEndUserBins) "--no-build-end-user-bins"
+    ++ optional (!buildPlatformTools) "--no-build-platform-tools"
+    ++ optional (!buildValidatorBins) "--no-build-validator-bins";
 
-  src = fetchFromGitHub {
-    owner = "anza-xyz";
-    repo = "agave";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-25UgiC5jAnlNE8Z7WrQRIviCuFp4zg57ddYA4h0qJ6U=";
+  regularBuildscriptFlags = mkBuildscriptFlags {
+    inherit
+      buildDeprecatedBins
+      buildDevBins
+      buildEndUserBins
+      buildPlatformTools
+      buildValidatorBins
+      ;
   };
+  dcouBuildscriptFlags = mkBuildscriptFlags { inherit buildDCOUBins; };
 
-  cargoHash = "sha256-SVngabz9mrYNn7DlL7Rh7llvO4GmJdt5vpXVcjwqtNg=";
+  buildRegularBinaries =
+    buildDeprecatedBins || buildDevBins || buildEndUserBins || buildPlatformTools || buildValidatorBins;
+in
+stdenv.mkDerivation (
+  finalAttrs:
+  let
+    # Unfortunately Agave requires to be built using a specific rust version, specified in the toolchain file
+    rustToolchain =
+      let
+        rust-overlay-src = fetchFromGitHub {
+          owner = "oxalica";
+          repo = "rust-overlay";
+          rev = "db61f666aea93b28f644861fbddd37f235cc5983";
 
-  # For the same reason as discussed in solana-cli derivation (crossbeam softlink), the no_atomic file is missing
-  # and either must somehow be rendered unneeded (using an upstream package) or replaced. A cleaner, non-behavior-changing,
-  # solution would be to commit the file to the repo fork (replacing the softlink).
-  cargoPatches = [
-    ./crossbeam-epoch.patch
-  ];
+          hash = "sha256-jTof2+ir9UPmv4lWksYO6WbaXCC0nsDExrB9KZj7Dz4=";
+        };
 
-  nativeBuildInputs = [
-    installShellFiles
-    protobuf
-    cmake
-    gnumake
-    clang
-    llvm
-    llvmPackages.bintools
-    openssl.dev
-    pkg-config
-    rustfmt
-  ];
-  buildInputs = [
-    openssl
-    libz
-    rustPlatform.bindgenHook
-  ]
-  ++ lib.optionals stdenv.hostPlatform.isDarwin [ apple-sdk_15 ]
-  ++ lib.optionals stdenv.hostPlatform.isLinux [ udev ];
+        rust-overlay = lib.fix (final: pkgs // (import rust-overlay-src) final pkgs);
+      in
+      rust-overlay.rust-bin.fromRustupToolchainFile "${finalAttrs.src}/rust-toolchain.toml";
 
-  doInstallCheck = false;
+    rustPlatform = makeRustPlatform {
+      cargo = rustToolchain;
+      rustc = rustToolchain;
+    };
+  in
+  {
+    pname = "solana-agave";
+    version = "3.1.4";
 
-  env = {
-    # If set, always finds OpenSSL in the system, even if the vendored feature is enabled.
-    OPENSSL_NO_VENDOR = 1;
-    # Agave uses deny(warnings) which breaks when nixpkgs updates rustc.
-    # Cap lints to warnings so the build doesn't fail on new compiler lints.
-    RUSTFLAGS = "--cap-lints warn";
-    # Use the pre-built rocksdb from nixpkgs instead of compiling from source.
-    # This avoids GCC 13+ compatibility issues with missing <cstdint> includes.
-    ROCKSDB_LIB_DIR = "${rocksdb}/lib";
-  };
+    src = fetchFromGitHub {
+      owner = "anza-xyz";
+      repo = "agave";
+      rev = "v${finalAttrs.version}";
 
-  # Disabling tests because:
-  #
-  # ```
-  # running 3 tests
-  # test args::tests::test_max_genesis_archive_unpacked_size_constant ... ok
-  # test bigtable::tests::test_missing_blocks ... ok
-  # error: test failed, to rerun pass `-p agave-ledger-tool --bin agave-ledger-tool`
-  #
-  # Caused by:
-  #   process didn't exit successfully: `/build/source/target/x86_64-unknown-linux-gnu/release/deps/agave_ledger_tool-b8aca978c218ed51` (signal: 4, SIGILL: illegal instruction)
-  # ```
-  #
-  # Almost certainly caused by the ledger-tool test calling `Command::cargo_bin` which assumes a good bit about the current environment.
-  doCheck = false;
+      hash = "sha256-qBSUDf27OqsBrU8gJnEuFwz1zCJr4aQbFnaQbTgSBAk=";
+    };
 
-  meta = {
-    description = "Solana Network Validator";
-    homepage = "https://github.com/anza-xyz/agave";
-    changelog = "https://github.com/anza-xyz/agave/releases/tag/${finalAttrs.version}";
-    license = with lib.licenses; [
-      asl20
+    patches = [ ./modularise-buildscript.patch ];
+
+    nativeBuildInputs = [
+      installShellFiles
+      makeWrapper
+      pkg-config
+      protobuf
+
+      rustPlatform.cargoSetupHook
+      rustPlatform.bindgenHook
+      rustToolchain
     ];
-    maintainers = with lib.maintainers; [
-      TomMD
+
+    buildInputs = [
+      openssl
+      udev
     ];
-    mainProgram = "agave";
-  };
-})
+
+    env = {
+      NO_RUSTUP_OVERRIDE = 1; # Agave uses a custom cargo wrapper which ensures the correct version, this disables it
+      OPENSSL_NO_VENDOR = 1; # Use system openssl
+    };
+
+    postPatch = ''
+      patchShebangs .
+    '';
+    cargoVendorDir = "cargo-vendor-dir";
+
+    regularVendorDir = rustPlatform.importCargoLock {
+      lockFile = "${finalAttrs.src}/Cargo.lock";
+
+      outputHashes = {
+        "crossbeam-epoch-0.9.5" = "sha256-Jf0RarsgJiXiZ+ddy0vp4jQ59J9m0k3sgXhWhCdhgws=";
+      };
+    };
+
+    dcouVendorDir = rustPlatform.importCargoLock {
+      lockFile = "${finalAttrs.src}/dev-bins/Cargo.lock";
+    };
+
+    buildPhase = lib.concatStringsSep "\n" (
+      lib.optional buildRegularBinaries ''
+        rm -rf cargo-vendor-dir
+        cp -Lr --reflink=auto -- "${finalAttrs.regularVendorDir}" cargo-vendor-dir
+        chmod -R +644 -- cargo-vendor-dir
+
+        cp $src/.cargo/config.toml .cargo/config.toml
+        cat cargo-vendor-dir/.cargo/config.toml >> .cargo/config.toml
+
+        ./scripts/cargo-install-all.sh ${lib.concatStringsSep " " regularBuildscriptFlags} --no-perf-libs --no-spl-token $out
+      ''
+      ++ lib.optional buildDCOUBins ''
+        rm -rf cargo-vendor-dir
+        cp -Lr --reflink=auto -- "${finalAttrs.dcouVendorDir}" cargo-vendor-dir
+        chmod -R +644 -- cargo-vendor-dir
+
+        cp $src/.cargo/config.toml .cargo/config.toml
+        cat cargo-vendor-dir/.cargo/config.toml >> .cargo/config.toml
+
+        ./scripts/cargo-install-all.sh ${lib.concatStringsSep " " dcouBuildscriptFlags} --no-perf-libs --no-spl-token $out
+      ''
+    );
+
+    # Already performed by the script from the agave repo
+    installPhase = "";
+
+    postInstall =
+      ''
+        rmdir --ignore-fail-on-non-empty $out/bin/deps
+      ''
+      ++ lib.optionalString (buildEndUserBins && stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+        installShellCompletion --cmd solana \
+          --bash <($out/bin/solana completion --shell bash) \
+          --fish <($out/bin/solana completion --shell fish) \
+          --zsh <($out/bin/solana completion --shell zsh)
+      ''
+      + lib.optionalString buildValidatorBins ''
+        wrapProgram $out/bin/agave-validator \
+          --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ solana-libpoh-simd ]}"
+      '';
+
+    doCheck = false;
+
+    passthru = {
+      inherit rustToolchain;
+
+      updateScript = nix-update-script {
+        extraArgs = [
+          "--version-regex"
+          "^v([0-9.]+)$"
+        ];
+      };
+    };
+
+    meta = {
+      description = "Web-Scale Blockchain for fast, secure, scalable, decentralized apps and marketplaces.";
+      homepage = "https://github.com/anza-xyz/agave";
+      changelog = "https://github.com/anza-xyz/agave/blob/v${finalAttrs.version}/CHANGELOG.md";
+      license = lib.licenses.asl20;
+      sourceProvenance = with lib.sourceTypes; [
+        fromSource
+      ];
+      maintainers = with lib.maintainers; [
+        joncinque
+        Managarmrr
+      ];
+    };
+  }
+)
