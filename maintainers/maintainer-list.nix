@@ -13265,6 +13265,11 @@
     githubId = 31407988;
     name = "Jon Bosque";
   };
+  joncinque = {
+    github = "joncinque";
+    githubId = 934662;
+    name = "Jon Cinque";
+  };
   jonhermansen = {
     name = "Jon Hermansen";
     email = "jon@jh86.org";
