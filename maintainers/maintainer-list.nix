@@ -13912,6 +13912,11 @@
     githubId = 31407988;
     name = "Jon Bosque";
   };
+  joncinque = {
+    github = "joncinque";
+    githubId = 934662;
+    name = "Jon Cinque";
+  };
   jonhermansen = {
     name = "Jon Hermansen";
     email = "jon@jh86.org";
@@ -17586,6 +17591,13 @@
     github = "mana-byte";
     githubId = 93316844;
     name = "Manaiki Laut";
+  };
+  Managarmrr = {
+    email = "patrick@managarmr.de";
+    github = "Managarmrr";
+    githubId = 63654312;
+    name = "Patrick Reich";
+    keys = [ { fingerprint = "CE12 ED73 C6D5 DE05 1651  6DCC 3977 61D5 D102 CB9D"; } ];
   };
   mandos = {
     email = "marek.maksimczyk@mandos.net.pl";
