@@ -160,7 +160,7 @@ stdenv.mkDerivation (
       ''
         rmdir --ignore-fail-on-non-empty $out/bin/deps
       ''
-      ++ lib.optionalString (buildEndUserBins && stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+      + lib.optionalString (buildEndUserBins && stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
         installShellCompletion --cmd solana \
           --bash <($out/bin/solana completion --shell bash) \
           --fish <($out/bin/solana completion --shell fish) \
