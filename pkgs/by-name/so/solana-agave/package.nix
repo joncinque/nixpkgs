@@ -80,14 +80,14 @@ stdenv.mkDerivation (
   in
   {
     pname = "solana-agave";
-    version = "3.1.4";
+    version = "3.1.8";
 
     src = fetchFromGitHub {
       owner = "anza-xyz";
       repo = "agave";
       rev = "v${finalAttrs.version}";
 
-      hash = "sha256-qBSUDf27OqsBrU8gJnEuFwz1zCJr4aQbFnaQbTgSBAk=";
+      hash = "sha256-4jXgFRSzWKBLZYYr3VZ6LTxlqzD7QUtNHZZpLO85do4=";
     };
 
     patches = [ ./modularise-buildscript.patch ];
