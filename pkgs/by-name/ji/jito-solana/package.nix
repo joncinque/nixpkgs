@@ -13,6 +13,7 @@
   protobuf,
   solana-libpoh-simd,
   udev,
+  jq,
 
   # Build flags
   buildDCOUBins ? true,
@@ -64,9 +65,9 @@ stdenv.mkDerivation (
         rust-overlay-src = fetchFromGitHub {
           owner = "oxalica";
           repo = "rust-overlay";
-          rev = "db61f666aea93b28f644861fbddd37f235cc5983";
+          rev = "055977c30249484010750e03074c744dcdaa0d23";
 
-          hash = "sha256-jTof2+ir9UPmv4lWksYO6WbaXCC0nsDExrB9KZj7Dz4=";
+          hash = "sha256-waABTSxPdbxml4BhcabHhyQF02Qnj27qRU4ard0mTQo=";
         };
 
         rust-overlay = lib.fix (final: pkgs // (import rust-overlay-src) final pkgs);
@@ -80,17 +81,15 @@ stdenv.mkDerivation (
   in
   {
     pname = "jito-solana";
-    version = "3.1.10";
+    version = "4.0.0-beta.1";
 
     src = fetchFromGitHub {
       owner = "jito-foundation";
       repo = "jito-solana";
       rev = "v${finalAttrs.version}-jito";
-      hash = "sha256-yLpv8Otmk5vw88XReh8KD76XG75xSC0Zqvtb0Ai2mvg=";
+      hash = "sha256-ljXofEDaLnGHhmKnsNqm4C64m7q7VI9ClOw4n7mixlw=";
       fetchSubmodules = true;
     };
-
-    patches = [ ./modularise-buildscript.patch ];
 
     nativeBuildInputs = [
       installShellFiles
@@ -106,6 +105,7 @@ stdenv.mkDerivation (
     buildInputs = [
       openssl
       udev
+      jq
     ];
 
     env = {
