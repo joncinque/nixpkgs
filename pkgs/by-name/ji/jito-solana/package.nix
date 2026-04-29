@@ -80,13 +80,13 @@ stdenv.mkDerivation (
   in
   {
     pname = "jito-solana";
-    version = "3.1.13";
+    version = "3.1.14";
 
     src = fetchFromGitHub {
       owner = "jito-foundation";
       repo = "jito-solana";
       rev = "v${finalAttrs.version}-jito";
-      hash = "sha256-Mfo/bHL8fBrLHvGQccNzTMkzY9Ojzeor9x6jqwP1t/8=";
+      hash = "sha256-g9AH0qw1AhYsuBve2sE6sKTct3v/2MGt2R/WXLkLSEM=";
       fetchSubmodules = true;
     };
 
@@ -126,7 +126,8 @@ stdenv.mkDerivation (
 
       outputHashes = {
         "crossbeam-epoch-0.9.5" = "sha256-Jf0RarsgJiXiZ+ddy0vp4jQ59J9m0k3sgXhWhCdhgws=";
-        "rustls-webpki-0.103.6" = "sha256-jE1zWME1jC7sQ+nUP3a3AjImn9iz1ALmuLvO0SlY5Z0=";
+        "rustls-webpki-0.103.6" = "sha256-Z3v6hw0DFK5ZXWcpj3l85doWMtPkBtOy23IDQ0OcFwE=";
+        "rustls-webpki-0.101.7" = "sha256-v5Sph2KLZ0xKIjteFhIBghWFCdHTvqSXsXT9soEFA44=";
       };
     };
 
