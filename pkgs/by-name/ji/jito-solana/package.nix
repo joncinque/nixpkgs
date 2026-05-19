@@ -81,13 +81,13 @@ stdenv.mkDerivation (
   in
   {
     pname = "jito-solana";
-    version = "4.0.0-rc.1";
+    version = "4.0.0";
 
     src = fetchFromGitHub {
       owner = "jito-foundation";
       repo = "jito-solana";
       rev = "v${finalAttrs.version}-jito";
-      hash = "sha256-LXxVXvLhgNGR+E3zZeHudILPebPhT5KqVhL1C8ShtX4=";
+      hash = "sha256-YhUBjK4EdxIsaSNGejBCwfbTNRR/++4rvI9plTWsVps=";
       fetchSubmodules = true;
     };
 
