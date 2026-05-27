@@ -11,6 +11,7 @@
   openssl,
   pkg-config,
   protobuf,
+  rocksdb,
   solana-libpoh-simd,
   udev,
   jq,
@@ -65,9 +66,8 @@ stdenv.mkDerivation (
         rust-overlay-src = fetchFromGitHub {
           owner = "oxalica";
           repo = "rust-overlay";
-          rev = "055977c30249484010750e03074c744dcdaa0d23";
-
-          hash = "sha256-waABTSxPdbxml4BhcabHhyQF02Qnj27qRU4ard0mTQo=";
+          rev = "6cddd512fa2bf7231f098d3a2f92f6e4cff71e0a";
+          hash = "sha256-UkkMh3bX9QW4Luqkm98nUaOqKWrU6i65mUnph3WeSSw=";
         };
 
         rust-overlay = lib.fix (final: pkgs // (import rust-overlay-src) final pkgs);
@@ -81,13 +81,13 @@ stdenv.mkDerivation (
   in
   {
     pname = "jito-solana";
-    version = "4.0.0";
+    version = "4.1.0-beta.1";
 
     src = fetchFromGitHub {
       owner = "jito-foundation";
       repo = "jito-solana";
       rev = "v${finalAttrs.version}-jito";
-      hash = "sha256-YhUBjK4EdxIsaSNGejBCwfbTNRR/++4rvI9plTWsVps=";
+      hash = "sha256-rCWXEMV3gOUC2xNJTMph9RmeRqGNSBC2ipd8uf03TJ4=";
       fetchSubmodules = true;
     };
 
@@ -106,14 +106,16 @@ stdenv.mkDerivation (
       openssl
       udev
       jq
+      protobuf
     ];
 
     env = {
       NO_RUSTUP_OVERRIDE = 1; # Agave uses a custom cargo wrapper which ensures the correct version, this disables it
       OPENSSL_NO_VENDOR = 1; # Use system openssl
+      ROCKSDB_LIB_DIR = "${rocksdb}/lib"; # Use nix-packaged rocksdb
       RUSTFLAGS = "-C target-cpu=native"; # Target building CPU
-      PROTOC="${protobuf}/bin/protoc";
-      PROTOC_INCLUDE="${protobuf}/include";
+      #PROTOC="${protobuf}/bin/protoc";
+      #PROTOC_INCLUDE="${protobuf}/include";
     };
 
     postPatch = ''
@@ -126,8 +128,6 @@ stdenv.mkDerivation (
 
       outputHashes = {
         "crossbeam-epoch-0.9.5" = "sha256-Jf0RarsgJiXiZ+ddy0vp4jQ59J9m0k3sgXhWhCdhgws=";
-        "rustls-webpki-0.101.7" = "sha256-v5Sph2KLZ0xKIjteFhIBghWFCdHTvqSXsXT9soEFA44=";
-        "rustls-webpki-0.103.10" = "sha256-Xy5xm01o3W6kYEueDMIkP3D1i2Mh2epWlQ39GUmXyuE=";
       };
     };
 
