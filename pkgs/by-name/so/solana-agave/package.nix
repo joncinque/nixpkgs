@@ -11,8 +11,10 @@
   openssl,
   pkg-config,
   protobuf,
+  rocksdb,
   solana-libpoh-simd,
   udev,
+  jq,
 
   # Build flags
   buildDCOUBins ? true,
@@ -64,9 +66,9 @@ stdenv.mkDerivation (
         rust-overlay-src = fetchFromGitHub {
           owner = "oxalica";
           repo = "rust-overlay";
-          rev = "db61f666aea93b28f644861fbddd37f235cc5983";
+          rev = "6cddd512fa2bf7231f098d3a2f92f6e4cff71e0a";
 
-          hash = "sha256-jTof2+ir9UPmv4lWksYO6WbaXCC0nsDExrB9KZj7Dz4=";
+          hash = "sha256-UkkMh3bX9QW4Luqkm98nUaOqKWrU6i65mUnph3WeSSw=";
         };
 
         rust-overlay = lib.fix (final: pkgs // (import rust-overlay-src) final pkgs);
@@ -90,7 +92,7 @@ stdenv.mkDerivation (
       hash = "sha256-4jXgFRSzWKBLZYYr3VZ6LTxlqzD7QUtNHZZpLO85do4=";
     };
 
-    patches = [ ./modularise-buildscript.patch ];
+    #patches = [ ./modularise-buildscript.patch ];
 
     nativeBuildInputs = [
       installShellFiles
@@ -106,11 +108,13 @@ stdenv.mkDerivation (
     buildInputs = [
       openssl
       udev
-    ];
+    ] ++ lib.optionals finalAttrs.passthru.solana.jitoSupport [ jq protobuf ];
 
     env = {
       NO_RUSTUP_OVERRIDE = 1; # Agave uses a custom cargo wrapper which ensures the correct version, this disables it
       OPENSSL_NO_VENDOR = 1; # Use system openssl
+      ROCKSDB_LIB_DIR = "${rocksdb}/lib"; # Use nix-packaged rocksdb
+      RUSTFLAGS = "-C target-cpu=native"; # Target building CPU
     };
 
     postPatch = ''
@@ -176,11 +180,9 @@ stdenv.mkDerivation (
     passthru = {
       inherit rustToolchain;
 
-      updateScript = nix-update-script {
-        extraArgs = [
-          "--version-regex"
-          "^v([0-9.]+)$"
-        ];
+      solana = {
+        deploymentFlavour = "agave";
+        jitoSupport = false;
       };
     };
 
