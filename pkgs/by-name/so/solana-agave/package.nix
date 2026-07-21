@@ -12,8 +12,9 @@
   pkg-config,
   protobuf,
   rocksdb,
-  solana-libpoh-simd,
+  rust-jemalloc-sys-unprefixed,
   udev,
+  zstd,
   jq,
 
   # Build flags
@@ -66,8 +67,8 @@ stdenv.mkDerivation (
         rust-overlay-src = fetchFromGitHub {
           owner = "oxalica";
           repo = "rust-overlay";
-          rev = "6cddd512fa2bf7231f098d3a2f92f6e4cff71e0a";
-          hash = "sha256-UkkMh3bX9QW4Luqkm98nUaOqKWrU6i65mUnph3WeSSw=";
+          rev = "d3fe74269f2a6652437e21e78eb7e83be81f6982";
+          hash = "sha256-7eEiezSku3lbZPUOXW8we1a7+xd5axkCQdyI3rzOKjo=";
         };
 
         rust-overlay = lib.fix (final: pkgs // (import rust-overlay-src) final pkgs);
@@ -81,23 +82,22 @@ stdenv.mkDerivation (
   in
   {
     pname = "solana-agave";
-    version = "3.1.8";
+    version = "4.5.0-beta.0";
 
     src = fetchFromGitHub {
       owner = "anza-xyz";
       repo = "agave";
       rev = "v${finalAttrs.version}";
 
-      hash = "sha256-4jXgFRSzWKBLZYYr3VZ6LTxlqzD7QUtNHZZpLO85do4=";
+      hash = "sha256-eKdRBfi9J1ze8Y6hazd4g/ki5h4dsjTa2mdBpidQITY=";
     };
-
-    #patches = [ ./modularise-buildscript.patch ];
 
     nativeBuildInputs = [
       installShellFiles
       makeWrapper
       pkg-config
       protobuf
+      jq
 
       rustPlatform.cargoSetupHook
       rustPlatform.bindgenHook
@@ -107,12 +107,14 @@ stdenv.mkDerivation (
     buildInputs = [
       openssl
       udev
-    ] ++ lib.optionals finalAttrs.passthru.solana.jitoSupport [ jq protobuf ];
+      zstd
+      rust-jemalloc-sys-unprefixed
+    ] ++ lib.optionals finalAttrs.passthru.solana.jitoSupport [ protobuf ];
 
     env = {
       NO_RUSTUP_OVERRIDE = 1; # Agave uses a custom cargo wrapper which ensures the correct version, this disables it
       OPENSSL_NO_VENDOR = 1; # Use system openssl
-      ROCKSDB_LIB_DIR = "${rocksdb}/lib"; # Use nix-packaged rocksdb
+      #ROCKSDB_LIB_DIR = "${rocksdb}/lib"; # Use vendored rocksdb
       RUSTFLAGS = "-C target-cpu=native"; # Target building CPU
     };
 
@@ -125,12 +127,20 @@ stdenv.mkDerivation (
       lockFile = "${finalAttrs.src}/Cargo.lock";
 
       outputHashes = {
-        "crossbeam-epoch-0.9.5" = "sha256-Jf0RarsgJiXiZ+ddy0vp4jQ59J9m0k3sgXhWhCdhgws=";
+        "blstrs-0.7.1" = "sha256-V8y/tnuQs8jb2PzLkiL4CxoeXVgVXZQjg1pEtKV0UHQ=";
+        "crossbeam-epoch-0.9.20" = "sha256-VsfKBHzxilKABOqvf7vWY51ndABjTH56c+WxpGaKAr8=";
+        "librocksdb-sys-0.17.3+10.4.2" = "sha256-9Wt0b6UFXDzdZWPsbwQEcPGXuCZWJ10bEJD/MGxNq/0=";
+      } // lib.optionalAttrs finalAttrs.passthru.solana.jitoSupport {
+        "jito-priority-fee-distribution-sdk-0.0.1" = "sha256-HlA78CB7CXVbIAa6sRdwJvBGIdyew3sLITqorpSv3cY=";
       };
     };
 
     dcouVendorDir = rustPlatform.importCargoLock {
       lockFile = "${finalAttrs.src}/dev-bins/Cargo.lock";
+
+      outputHashes = {
+        "librocksdb-sys-0.17.3+10.4.2" = "sha256-9Wt0b6UFXDzdZWPsbwQEcPGXuCZWJ10bEJD/MGxNq/0=";
+      };
     };
 
     buildPhase = lib.concatStringsSep "\n" (
@@ -168,10 +178,6 @@ stdenv.mkDerivation (
           --bash <($out/bin/solana completion --shell bash) \
           --fish <($out/bin/solana completion --shell fish) \
           --zsh <($out/bin/solana completion --shell zsh)
-      ''
-      + lib.optionalString buildValidatorBins ''
-        wrapProgram $out/bin/agave-validator \
-          --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ solana-libpoh-simd ]}"
       '';
 
     doCheck = false;
