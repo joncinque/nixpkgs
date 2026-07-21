@@ -12,7 +12,6 @@
   pkg-config,
   protobuf,
   rocksdb,
-  solana-libpoh-simd,
   udev,
   jq,
 
@@ -66,8 +65,8 @@ stdenv.mkDerivation (
         rust-overlay-src = fetchFromGitHub {
           owner = "oxalica";
           repo = "rust-overlay";
-          rev = "6cddd512fa2bf7231f098d3a2f92f6e4cff71e0a";
-          hash = "sha256-UkkMh3bX9QW4Luqkm98nUaOqKWrU6i65mUnph3WeSSw=";
+          rev = "14f58845249f3552a89b07772626b8d3c632fa86";
+          hash = "sha256-OfqgY+0hp/zseZB7uyH0U8kIDPS4scZZCyAurEplvG0=";
         };
 
         rust-overlay = lib.fix (final: pkgs // (import rust-overlay-src) final pkgs);
@@ -81,17 +80,15 @@ stdenv.mkDerivation (
   in
   {
     pname = "solana-agave";
-    version = "3.1.8";
+    version = "4.2.0-beta.2";
 
     src = fetchFromGitHub {
       owner = "anza-xyz";
       repo = "agave";
       rev = "v${finalAttrs.version}";
 
-      hash = "sha256-4jXgFRSzWKBLZYYr3VZ6LTxlqzD7QUtNHZZpLO85do4=";
+      hash = "sha256-fZuSnZ7anLDCLYi5279dLWD+zUDXgWrhJvO12qzyqLg=";
     };
-
-    #patches = [ ./modularise-buildscript.patch ];
 
     nativeBuildInputs = [
       installShellFiles
@@ -125,7 +122,8 @@ stdenv.mkDerivation (
       lockFile = "${finalAttrs.src}/Cargo.lock";
 
       outputHashes = {
-        "crossbeam-epoch-0.9.5" = "sha256-Jf0RarsgJiXiZ+ddy0vp4jQ59J9m0k3sgXhWhCdhgws=";
+        "crossbeam-epoch-0.9.5" = "sha256-Y61Rqz6Tjmno67iDeNj+ZN6QkGK4TL+bdJBG9TAlj68=";
+        "librocksdb-sys-0.17.3+10.4.2" = "sha256-Wbar2ODebYIGiE4aeUsVXuWUzrp+evlckFaCbtjTJMk=";
       };
     };
 
@@ -168,10 +166,6 @@ stdenv.mkDerivation (
           --bash <($out/bin/solana completion --shell bash) \
           --fish <($out/bin/solana completion --shell fish) \
           --zsh <($out/bin/solana completion --shell zsh)
-      ''
-      + lib.optionalString buildValidatorBins ''
-        wrapProgram $out/bin/agave-validator \
-          --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ solana-libpoh-simd ]}"
       '';
 
     doCheck = false;
