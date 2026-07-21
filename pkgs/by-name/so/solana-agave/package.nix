@@ -12,7 +12,6 @@
   pkg-config,
   protobuf,
   rocksdb,
-  solana-libpoh-simd,
   udev,
   jq,
 
@@ -66,9 +65,9 @@ stdenv.mkDerivation (
         rust-overlay-src = fetchFromGitHub {
           owner = "oxalica";
           repo = "rust-overlay";
-          rev = "6cddd512fa2bf7231f098d3a2f92f6e4cff71e0a";
+          rev = "14f58845249f3552a89b07772626b8d3c632fa86";
 
-          hash = "sha256-UkkMh3bX9QW4Luqkm98nUaOqKWrU6i65mUnph3WeSSw=";
+          hash = "sha256-OfqgY+0hp/zseZB7uyH0U8kIDPS4scZZCyAurEplvG0=";
         };
 
         rust-overlay = lib.fix (final: pkgs // (import rust-overlay-src) final pkgs);
@@ -169,10 +168,6 @@ stdenv.mkDerivation (
           --bash <($out/bin/solana completion --shell bash) \
           --fish <($out/bin/solana completion --shell fish) \
           --zsh <($out/bin/solana completion --shell zsh)
-      ''
-      + lib.optionalString buildValidatorBins ''
-        wrapProgram $out/bin/agave-validator \
-          --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ solana-libpoh-simd ]}"
       '';
 
     doCheck = false;
