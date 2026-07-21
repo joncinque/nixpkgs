@@ -7,7 +7,7 @@
 solana-agave.overrideAttrs (
   finalAttrs: oldAttrs: {
     pname = "jito-solana";
-    version = "4.1.0-rc.1";
+    version = "4.4.0-beta.0";
 
     src = fetchFromGitHub {
       owner = "jito-foundation";
@@ -15,7 +15,7 @@ solana-agave.overrideAttrs (
       rev = "v${finalAttrs.version}-jito";
       fetchSubmodules = true;
 
-      hash = "sha256-fBBmyL0LHL4UPMFjVIf77Oy5AAfcfo7akhYUbhWFo8Q=";
+      hash = "sha256-JtPUyBqeIpfzYJ8L26ijad5gK6YtQnUx6PqsCn1Ses8=";
     };
 
     passthru = lib.attrsets.recursiveUpdate oldAttrs.passthru { solana.jitoSupport = true; };
