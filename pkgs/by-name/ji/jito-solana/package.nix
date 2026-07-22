@@ -12,7 +12,7 @@ solana-agave.overrideAttrs (
     src = fetchFromGitHub {
       owner = "jito-foundation";
       repo = "jito-solana";
-      rev = "v${finalAttrs.version}-jito";
+      rev = "v${finalAttrs.version}-jito.1";
       fetchSubmodules = true;
 
       hash = "sha256-0gkI4DGMjIAmhTNchqfeL6M+7bbxpGgLkZhYbfW6N6o=";
