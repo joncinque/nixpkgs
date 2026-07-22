@@ -81,17 +81,15 @@ stdenv.mkDerivation (
   in
   {
     pname = "solana-agave";
-    version = "3.1.8";
+    version = "4.2.0-beta.2";
 
     src = fetchFromGitHub {
       owner = "anza-xyz";
       repo = "agave";
       rev = "v${finalAttrs.version}";
 
-      hash = "sha256-4jXgFRSzWKBLZYYr3VZ6LTxlqzD7QUtNHZZpLO85do4=";
+      hash = "sha256-fZuSnZ7anLDCLYi5279dLWD+zUDXgWrhJvO12qzyqLg=";
     };
-
-    #patches = [ ./modularise-buildscript.patch ];
 
     nativeBuildInputs = [
       installShellFiles
