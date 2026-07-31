@@ -123,7 +123,8 @@ stdenv.mkDerivation (
       lockFile = "${finalAttrs.src}/Cargo.lock";
 
       outputHashes = {
-        "crossbeam-epoch-0.9.5" = "sha256-Jf0RarsgJiXiZ+ddy0vp4jQ59J9m0k3sgXhWhCdhgws=";
+        "crossbeam-epoch-0.9.5" = "sha256-Y61Rqz6Tjmno67iDeNj+ZN6QkGK4TL+bdJBG9TAlj68=";
+        "librocksdb-sys-0.17.3+10.4.2" = "sha256-Wbar2ODebYIGiE4aeUsVXuWUzrp+evlckFaCbtjTJMk=";
       };
     };
 
