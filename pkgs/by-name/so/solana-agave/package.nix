@@ -65,8 +65,8 @@ stdenv.mkDerivation (
         rust-overlay-src = fetchFromGitHub {
           owner = "oxalica";
           repo = "rust-overlay";
-          rev = "14f58845249f3552a89b07772626b8d3c632fa86";
-          hash = "sha256-OfqgY+0hp/zseZB7uyH0U8kIDPS4scZZCyAurEplvG0=";
+          rev = "860d7c835ab91bfc8972b67092f5f2db8e9390a0";
+          hash = "sha256-BTFrmyh0oaVDsvA9NNw0YpbbeppTwU0t70iVx672Ew8=";
         };
 
         rust-overlay = lib.fix (final: pkgs // (import rust-overlay-src) final pkgs);
@@ -80,7 +80,7 @@ stdenv.mkDerivation (
   in
   {
     pname = "solana-agave";
-    version = "4.2.0-beta.2";
+    version = "4.3.0-beta.3";
 
     src = fetchFromGitHub {
       owner = "anza-xyz";
@@ -109,7 +109,7 @@ stdenv.mkDerivation (
     env = {
       NO_RUSTUP_OVERRIDE = 1; # Agave uses a custom cargo wrapper which ensures the correct version, this disables it
       OPENSSL_NO_VENDOR = 1; # Use system openssl
-      ROCKSDB_LIB_DIR = "${rocksdb}/lib"; # Use nix-packaged rocksdb
+      #ROCKSDB_LIB_DIR = "${rocksdb}/lib"; # Use vendored rocksdb
       RUSTFLAGS = "-C target-cpu=native"; # Target building CPU
     };
 
@@ -122,13 +122,17 @@ stdenv.mkDerivation (
       lockFile = "${finalAttrs.src}/Cargo.lock";
 
       outputHashes = {
-        "crossbeam-epoch-0.9.5" = "sha256-Y61Rqz6Tjmno67iDeNj+ZN6QkGK4TL+bdJBG9TAlj68=";
-        "librocksdb-sys-0.17.3+10.4.2" = "sha256-Wbar2ODebYIGiE4aeUsVXuWUzrp+evlckFaCbtjTJMk=";
+        "crossbeam-epoch-0.9.20" = "sha256-VsfKBHzxilKABOqvf7vWY51ndABjTH56c+WxpGaKAr8=";
+        "librocksdb-sys-0.17.3+10.4.2" = "sha256-9Wt0b6UFXDzdZWPsbwQEcPGXuCZWJ10bEJD/MGxNq/0=";
       };
     };
 
     dcouVendorDir = rustPlatform.importCargoLock {
       lockFile = "${finalAttrs.src}/dev-bins/Cargo.lock";
+
+      outputHashes = {
+        "librocksdb-sys-0.17.3+10.4.2" = "sha256-9Wt0b6UFXDzdZWPsbwQEcPGXuCZWJ10bEJD/MGxNq/0=";
+      };
     };
 
     buildPhase = lib.concatStringsSep "\n" (
