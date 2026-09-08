@@ -124,6 +124,8 @@ stdenv.mkDerivation (
       outputHashes = {
         "crossbeam-epoch-0.9.20" = "sha256-VsfKBHzxilKABOqvf7vWY51ndABjTH56c+WxpGaKAr8=";
         "librocksdb-sys-0.17.3+10.4.2" = "sha256-9Wt0b6UFXDzdZWPsbwQEcPGXuCZWJ10bEJD/MGxNq/0=";
+      } // lib.optionals finalAttrs.passthru.solana.jitoSupport {
+        "jito-priority-fee-distribution-sdk-0.0.1" = "sha256-HlA78CB7CXVbIAa6sRdwJvBGIdyew3sLITqorpSv3cY=";
       };
     };
 
