@@ -122,6 +122,7 @@ stdenv.mkDerivation (
       lockFile = "${finalAttrs.src}/Cargo.lock";
 
       outputHashes = {
+        "blstrs-0.7.1" = "sha256-V8y/tnuQs8jb2PzLkiL4CxoeXVgVXZQjg1pEtKV0UHQ=";
         "crossbeam-epoch-0.9.20" = "sha256-VsfKBHzxilKABOqvf7vWY51ndABjTH56c+WxpGaKAr8=";
         "librocksdb-sys-0.17.3+10.4.2" = "sha256-9Wt0b6UFXDzdZWPsbwQEcPGXuCZWJ10bEJD/MGxNq/0=";
       } // lib.optionalAttrs finalAttrs.passthru.solana.jitoSupport {
